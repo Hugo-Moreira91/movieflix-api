@@ -112,6 +112,35 @@ app.delete("/movies/:id", async (req, res) => {
   res.status(200).send();
 });
 
+app.get("/movies/:genreName", async (req, res) => {
+  const genreName = req.params.genreName;
+
+  try {
+    const moviesFilteredByGenreName = await prisma.movie.findMany({
+      include: {
+        genres: true,
+        languages: true,
+      },
+      where: {
+        genres: {
+          name: {
+            equals: genreName,
+            mode: "insensitive",
+          },
+        },
+      },
+    });
+
+    if (moviesFilteredByGenreName.length == 0) {
+      return res.status(404).send({ message: "Gênero não existente" });
+    }
+
+    res.status(200).send(moviesFilteredByGenreName);
+  } catch (error) {
+    return res.status(500).send({ message: "Falha ao buscar filmes por gênero" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Servidor em execução em http://localhost:${port}`);
 });
